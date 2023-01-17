@@ -43,20 +43,20 @@ def main(excel_loc: str, train_file: str, dev_file: str, test_file: str):
     crest_df = pd.read_excel(excel_loc, engine="openpyxl")
     crest_df = crest_df.reset_index()
     for index, row in tqdm(crest_df.iterrows()):
-        span1_info, span2_info, signal_info = row["idx"].splitlines()
-        span1_info = span_info_to_list(span1_info)
-        span2_info = span_info_to_list(span2_info)
-        # skip docs with multiple cause/effect spans and missing spans
-        if len(span1_info) != 1 or len(span2_info) != 1 or span1_info[0][0] == -1 or span2_info[0][0] == -1:
-            ids["skipped"].add(global_id)
-            continue
-        span1_info = span1_info[0]
-        span2_info = span2_info[0]
         context = row["context"]
         direction = row["direction"]
         label = row["label"]
         split = row["split"]
         global_id = row["global_id"]
+        span1_info, span2_info, signal_info = row["idx"].splitlines()
+        span1_info = span_info_to_list(span1_info)
+        span2_info = span_info_to_list(span2_info)
+        # skip docs with multiple cause/effect spans and missing spans
+        if len(span1_info) != 1 or len(span2_info) != 1 or span1_info[0][0] == -1 or span2_info[0][0] == -1 or direction == -1:
+            ids["skipped"].add(global_id)
+            continue
+        span1_info = span1_info[0]
+        span2_info = span2_info[0]
 
         span_starts = set()
         neg = 0
@@ -76,7 +76,7 @@ def main(excel_loc: str, train_file: str, dev_file: str, test_file: str):
             entities.append(entity)
             span_starts.add(entity[0].i)
 
-        if entities[0].end_char >= entities[1].start_char:
+        if entities[0].end_char >= entities[1].start_char or abs(list(span_starts)[0] - list(span_starts)[1]) > 100:
             ids["skipped"].add(global_id)
             continue
         doc.ents = entities

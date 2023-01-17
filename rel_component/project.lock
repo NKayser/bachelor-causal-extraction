@@ -1,18 +1,20 @@
 data:
   cmd: python -m spacy run data
   script:
-    - python ./scripts/parse_crest_data.py assets/crest_v2.xlsx data/my_train.spacy
+    - python scripts/parse_crest_data.py assets/crest_v2.xlsx data/my_train.spacy
       data/my_dev.spacy data/my_test.spacy
   deps:
     - path: assets/crest_v2.xlsx
       md5: e5b30c11f4a7877b39c4c691eb8724f7
+    - path: scripts/parse_crest_data.py
+      md5: 6cc6c9f258e0d25cbf6617958cae2be8
   outs:
     - path: data/my_train.spacy
-      md5: 84c4a30cba2aa44de9f70af0ce309d21
+      md5: 313f5d340fab065b2814d19588531bbf
     - path: data/my_dev.spacy
       md5: 48462b4701a4e0fda95a07549d71c969
     - path: data/my_test.spacy
-      md5: b0fab5ce0b8afe075f473a275d8e29c6
+      md5: 9e540eb60ef0f56052c020fe3a251b6b
   spacy_version: 3.3.2
   spacy_git_version: 4e032da3b
 train_gpu:
@@ -22,14 +24,14 @@ train_gpu:
       --paths.dev data/my_dev.spacy -c ./scripts/custom_functions.py --gpu-id 0
   deps:
     - path: configs/rel_trf.cfg
-      md5: f9c3c92df968c2cd5aa223cb1277a44e
+      md5: 71c6bb8a070d01840bdb59dcdcd63bea
     - path: data/my_train.spacy
-      md5: 84c4a30cba2aa44de9f70af0ce309d21
+      md5: 313f5d340fab065b2814d19588531bbf
     - path: data/my_dev.spacy
       md5: 48462b4701a4e0fda95a07549d71c969
   outs:
     - path: training/model-best
-      md5: 3f15c27ff485b6f2830999e6c12fb794
+      md5: 276bb5fc8189f5eb038633dbbfafee59
   spacy_version: 3.3.2
   spacy_git_version: 4e032da3b
 evaluate:
@@ -38,9 +40,9 @@ evaluate:
     - python ./scripts/evaluate.py training/model-best data/my_test.spacy False
   deps:
     - path: training/model-best
-      md5: 2b82cff31bbe420f159cb70719485468
+      md5: 276bb5fc8189f5eb038633dbbfafee59
     - path: data/my_test.spacy
-      md5: b0fab5ce0b8afe075f473a275d8e29c6
+      md5: 9e540eb60ef0f56052c020fe3a251b6b
   outs: []
   spacy_version: 3.3.2
   spacy_git_version: 4e032da3b
