@@ -4,6 +4,7 @@ from pathlib import Path
 import spacy
 from spacy.tokens import DocBin, Doc
 from spacy.training.example import Example
+from tqdm import tqdm
 
 # make the factory work
 from rel_pipe import make_relation_extractor, score_relations
@@ -18,7 +19,7 @@ def main(trained_pipeline: Path, test_data: Path, print_details: bool):
     doc_bin = DocBin(store_user_data=True).from_disk(test_data)
     docs = doc_bin.get_docs(nlp.vocab)
     examples = []
-    for gold in docs:
+    for gold in tqdm(docs):
         pred = Doc(
             nlp.vocab,
             words=[t.text for t in gold],
@@ -44,7 +45,7 @@ def main(trained_pipeline: Path, test_data: Path, print_details: bool):
 
     random_examples = []
     docs = doc_bin.get_docs(nlp.vocab)
-    for gold in docs:
+    for gold in tqdm(docs):
         pred = Doc(
             nlp.vocab,
             words=[t.text for t in gold],

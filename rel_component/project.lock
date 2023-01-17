@@ -1,44 +1,44 @@
 data:
   cmd: python -m spacy run data
   script:
-    - python ./scripts/parse_data.py assets/annotations.jsonl data/train.spacy data/dev.spacy
-      data/test.spacy
+    - python ./scripts/parse_crest_data.py assets/crest_v2.xlsx data/my_train.spacy
+      data/my_dev.spacy data/my_test.spacy
   deps:
-    - path: assets/annotations.jsonl
-      md5: b35e76ec31e488750e520c8298f50c25
+    - path: assets/crest_v2.xlsx
+      md5: e5b30c11f4a7877b39c4c691eb8724f7
   outs:
-    - path: data/train.spacy
-      md5: 2b570a59e9cc4dbfc89e2bc2a07ea308
-    - path: data/dev.spacy
-      md5: 7fb0c7c231d68e2daacb63db3096a3cc
-    - path: data/test.spacy
-      md5: f8068e2d934af0322752a0c776ad00a2
+    - path: data/my_train.spacy
+      md5: 84c4a30cba2aa44de9f70af0ce309d21
+    - path: data/my_dev.spacy
+      md5: 48462b4701a4e0fda95a07549d71c969
+    - path: data/my_test.spacy
+      md5: b0fab5ce0b8afe075f473a275d8e29c6
   spacy_version: 3.3.2
   spacy_git_version: 4e032da3b
 train_gpu:
   cmd: python -m spacy run train_gpu
   script:
-    - python -m spacy train configs/rel_trf.cfg --output training --paths.train data/train.spacy
-      --paths.dev data/dev.spacy -c ./scripts/custom_functions.py --gpu-id 0
+    - python -m spacy train configs/rel_trf.cfg --output training --paths.train data/my_train.spacy
+      --paths.dev data/my_dev.spacy -c ./scripts/custom_functions.py --gpu-id 0
   deps:
-    - path: data/train.spacy
-      md5: 2b570a59e9cc4dbfc89e2bc2a07ea308
-    - path: data/dev.spacy
-      md5: 7fb0c7c231d68e2daacb63db3096a3cc
+    - path: data/my_train.spacy
+      md5: 84c4a30cba2aa44de9f70af0ce309d21
+    - path: data/my_dev.spacy
+      md5: 48462b4701a4e0fda95a07549d71c969
   outs:
     - path: training/model-best
-      md5: 94d4320177c79088a5328b87cef97268
+      md5: c85b23d407ddf406eed1758963c53d9b
   spacy_version: 3.3.2
   spacy_git_version: 4e032da3b
 evaluate:
   cmd: python -m spacy run evaluate
   script:
-    - python ./scripts/evaluate.py training/model-best data/test.spacy False
+    - python ./scripts/evaluate.py training/model-best data/my_test.spacy False
   deps:
     - path: training/model-best
-      md5: 94d4320177c79088a5328b87cef97268
-    - path: data/test.spacy
-      md5: f8068e2d934af0322752a0c776ad00a2
+      md5: c85b23d407ddf406eed1758963c53d9b
+    - path: data/my_test.spacy
+      md5: b0fab5ce0b8afe075f473a275d8e29c6
   outs: []
   spacy_version: 3.3.2
   spacy_git_version: 4e032da3b
