@@ -9,6 +9,7 @@ vars:
   train_file: "data/crest_train.spacy"
   dev_file: "data/crest_dev.spacy"
   test_file: "data/crest_test.spacy"
+  test_file_my_data: "data/my_train.spacy"
   trained_model: "training/model-best"
   parse_script: "scripts/parse_crest_data.py"
 
@@ -77,6 +78,14 @@ commands:
     deps:
       - ${vars.trained_model}
       - ${vars.test_file}
+
+  - name: "evaluate_my_data"
+      help: "Apply the best model to new, unseen text, and measure accuracy at different thresholds."
+      script:
+        - "python ./scripts/evaluate.py ${vars.trained_model} ${vars.test_file_my_data} False"
+      deps:
+        - ${vars.trained_model}
+        - ${vars.test_file}
 
 
   - name: "clean"
