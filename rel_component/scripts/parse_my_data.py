@@ -23,6 +23,7 @@ ann = "assets/labels_and_predictions.jsonl"
 train_file = 'data/my_train.spacy'
 dev_file = 'data/my_dev.spacy'
 test_file = 'data/my_test.spacy'
+rel_label = "causes"
 
 
 def ent_is_in_sent(ent, sent):
@@ -65,7 +66,11 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
             article_obj = json.loads(line)
             article_id = article_obj["id"]
             relations = list(filter(lambda x: x["type"] == "causality", article_obj["relations"]))
+            if len(relations) == 0:
+                continue
             entities = article_obj["labeled_entities"]
+            if len(entities) == 0:
+                continue
             article_doc = nlp(article_obj["text"])
             article_doc.spans["sc"] = [article_doc.char_span(x["start_offset"], x["end_offset"], x["label"],
                                                              alignment_mode="expand")
@@ -98,8 +103,8 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
                 if len(cause_effect_spans) > 0:
                     print(cause_effect_spans)
                 if len(cause_effect_spans) == 0:
-                    count_all["train"] += 1
-                    docs["train"].append(doc)
+                    # only add positive docs
+                    continue
 
                 for span in cause_effect_spans:
                     span_starts.add(span[0].i)
@@ -121,6 +126,7 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
                     for x2 in span_starts:
                         rels[(x1, x2)] = {}
                         # print(rels)
+                contains_positive = False
                 for relation in relations:
                     from_ent, to_ent = get_ents_of_relation(entities, relation)
 
@@ -149,17 +155,22 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
                     end = to_ent_sent[0].i
                     # print(rels[(start, end)])
                     # print(label)
-                    if "causality" not in rels[(start, end)]:
-                        rels[(start, end)]["causality"] = 1.0
+                    if rel_label not in rels[(start, end)]:
+                        rels[(start, end)][rel_label] = 1.0
                         count_pos["train"] += 1
+                        contains_positive = True
                         # print(pos)
                         # print(rels[(start, end)])
+
+                if not contains_positive:
+                    # only add positive
+                    continue
 
                 # The annotation is complete, so fill in zero's where the data is missing
                 for x1 in span_starts:
                     for x2 in span_starts:
-                        if "causality" not in rels[(x1, x2)]:
-                            rels[(x1, x2)]["causality"] = 0.0
+                        if rel_label not in rels[(x1, x2)]:
+                            rels[(x1, x2)][rel_label] = 0.0
 
                 doc._.rel = rels
                 if len(doc._.rel.items()) > 0:

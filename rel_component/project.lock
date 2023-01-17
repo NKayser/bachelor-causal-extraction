@@ -46,3 +46,15 @@ evaluate:
   outs: []
   spacy_version: 3.3.2
   spacy_git_version: 4e032da3b
+evaluate_my_data:
+  cmd: python -m spacy run evaluate_my_data
+  script:
+    - python ./scripts/evaluate.py training/model-best data/my_train.spacy False
+  deps:
+    - path: training/model-best
+      md5: 276bb5fc8189f5eb038633dbbfafee59
+    - path: data/crest_test.spacy
+      md5: 9e540eb60ef0f56052c020fe3a251b6b
+  outs: []
+  spacy_version: 3.3.2
+  spacy_git_version: 4e032da3b
