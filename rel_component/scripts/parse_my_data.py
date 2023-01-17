@@ -2,6 +2,7 @@ import json
 
 import typer
 from pathlib import Path
+from tqdm import tqdm
 
 from spacy.tokens import Span, DocBin, Doc
 from spacy.vocab import Vocab
@@ -13,15 +14,10 @@ import re
 import spacy
 
 nlp = spacy.blank("en")
+nlp.add_pipe("sentencizer")
 # Create a blank Tokenizer with just the English vocab
 
 msg = Printer()
-
-SYMM_LABELS = ["Binds"]
-MAP_LABELS = {
-    "DEGREE_IN": "DEGREE_IN",
-    "EXPERIENCE_IN": "EXPERIENCE_IN"
-}
 
 ann = "assets/labels_and_predictions.jsonl"
 train_file = 'data/my_train.spacy'
@@ -29,10 +25,34 @@ dev_file = 'data/my_dev.spacy'
 test_file = 'data/my_test.spacy'
 
 
+def ent_is_in_sent(ent, sent):
+    return not (ent.end_char < sent.start_char or ent.start_char > sent.end_char
+                or ent.start_char < sent.start_char or ent.end_char > sent.end_char)
+
+
+def get_ents_of_sent(all_entities, sent):
+    return [ent for ent in all_entities if ent_is_in_sent(ent, sent)]
+
+
+def get_ents_of_relation(all_ent_obj, relation):
+    from_id = relation["from_id"]
+    to_id = relation["to_id"]
+    from_ent = None
+    to_ent = None
+
+    for ent in all_ent_obj:
+        if from_id == ent["id"]:
+            from_ent = ent
+        if to_id == ent["id"]:
+            to_ent = ent
+        if from_ent is not None and to_ent is not None:
+            break
+    assert from_ent is not None and to_ent is not None
+    return from_ent, to_ent
+
+
 def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
-    """Creating the corpus from the Prodigy annotations."""
     Doc.set_extension("rel", default={}, force=True)
-    vocab = Vocab()
 
     docs = {"train": [], "dev": [], "test": [], "total": []}
     ids = {"train": set(), "dev": set(), "test": set(), "total": set()}
@@ -40,81 +60,119 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
     count_pos = {"train": 0, "dev": 0, "test": 0, "total": 0}
 
     with open(json_loc, encoding="utf8") as jsonfile:
-        file = json.load(jsonfile)
-        for example in file:
-            span_starts = set()
-            neg = 0
-            pos = 0
-            # Parse the tokens
-            tokens = nlp(example["document"])
+        json_list = list(jsonfile)
+        for line in tqdm(json_list):
+            article_obj = json.loads(line)
+            article_id = article_obj["id"]
+            relations = list(filter(lambda x: x["type"] == "causality", article_obj["relations"]))
+            entities = article_obj["labeled_entities"]
+            article_doc = nlp(article_obj["text"])
+            article_doc.spans["sc"] = [article_doc.char_span(x["start_offset"], x["end_offset"], x["label"],
+                                                             alignment_mode="expand")
+                                       for x in entities]
 
-            spaces = []
-            spaces = [True if tok.whitespace_ else False for tok in tokens]
-            words = [t.text for t in tokens]
-            doc = Doc(nlp.vocab, words=words, spaces=spaces)
+            # each sentence will become its own document. Relations across sentences cannot be captured for now.
+            for sent in article_doc.sents:
+                span_starts = set()
+                # Parse the tokens
+                tokens = nlp(sent.text)
 
-            # Parse the GGP entities
-            spans = example["tokens"]
-            entities = []
-            span_end_to_start = {}
-            for span in spans:
-                entity = doc.char_span(
-                    span["start"], span["end"], label=span["entityLabel"]
-                )
+                spaces = [True if tok.whitespace_ else False for tok in tokens]
+                words = [t.text for t in tokens]
+                doc = Doc(nlp.vocab, words=words, spaces=spaces)
 
-                span_end_to_start[span["token_start"]] = span["token_start"]
-                # print(span_end_to_start)
-                entities.append(entity)
-                span_starts.add(span["token_start"])
+                old_cause_effect_spans = list(filter(lambda x: x.label_ in ["cause", "effect"],
+                                                     get_ents_of_sent(article_doc.spans["sc"], sent)))
 
-            doc.ents = entities
+                cause_effect_spans = [doc.char_span(x.start_char - sent.start_char,
+                                                    x.end_char - sent.start_char,
+                                                    x.label_, alignment_mode="expand")
+                                      for x in old_cause_effect_spans]
+                for ent in cause_effect_spans:
+                    if ent is None:
+                        print("ent is None")
+                        print(sent)
+                        print(old_cause_effect_spans)
+                        assert False
 
-            # Parse the relations
-            rels = {}
-            for x1 in span_starts:
-                for x2 in span_starts:
-                    rels[(x1, x2)] = {}
-                    # print(rels)
-            relations = example["relations"]
-            # print(len(relations))
-            for relation in relations:
-                # the 'head' and 'child' annotations refer to the end token in the span
-                # but we want the first token
-                start = span_end_to_start[relation["head"]]
-                end = span_end_to_start[relation["child"]]
-                label = relation["relationLabel"]
-                # print(rels[(start, end)])
-                # print(label)
-                # label = MAP_LABELS[label]
-                if label not in rels[(start, end)]:
-                    rels[(start, end)][label] = 1.0
-                    pos += 1
-                    # print(pos)
+                if len(cause_effect_spans) > 0:
+                    print(cause_effect_spans)
+                if len(cause_effect_spans) == 0:
+                    count_all["train"] += 1
+                    docs["train"].append(doc)
+
+                for span in cause_effect_spans:
+                    span_starts.add(span[0].i)
+
+                previous_end = 0
+                overlap = False
+                for ent in cause_effect_spans:
+                    if ent.start_char <= previous_end:
+                        overlap = True
+                        break
+                    previous_end = ent.end_char
+                if overlap:
+                    continue
+                doc.ents = cause_effect_spans
+
+                # Parse the relations
+                rels = {}
+                for x1 in span_starts:
+                    for x2 in span_starts:
+                        rels[(x1, x2)] = {}
+                        # print(rels)
+                for relation in relations:
+                    from_ent, to_ent = get_ents_of_relation(entities, relation)
+
+                    if not (from_ent["label"] == "cause" and to_ent["label"] == "effect"):
+                        # cannot deal with "core reference" yet
+                        continue
+
+                    from_ent = article_doc.char_span(from_ent["start_offset"],
+                                                     from_ent["end_offset"],
+                                                     from_ent["label"], alignment_mode="expand")
+                    to_ent = article_doc.char_span(to_ent["start_offset"],
+                                                   to_ent["end_offset"],
+                                                   to_ent["label"], alignment_mode="expand")
+                    from_ent_sent = doc.char_span(from_ent.start_char - sent.start_char,
+                                                  from_ent.end_char - sent.start_char,
+                                                  from_ent.label_, alignment_mode="expand")
+                    to_ent_sent = doc.char_span(to_ent.start_char - sent.start_char,
+                                                to_ent.end_char - sent.start_char,
+                                                to_ent.label_, alignment_mode="expand")
+
+                    # cannot deal with realtion across sentences yet
+                    if not (ent_is_in_sent(from_ent, sent) and ent_is_in_sent(to_ent, sent)):
+                        continue
+
+                    start = from_ent_sent[0].i
+                    end = to_ent_sent[0].i
                     # print(rels[(start, end)])
+                    # print(label)
+                    if "causality" not in rels[(start, end)]:
+                        rels[(start, end)]["causality"] = 1.0
+                        count_pos["train"] += 1
+                        # print(pos)
+                        # print(rels[(start, end)])
 
-            # The annotation is complete, so fill in zero's where the data is missing
-            for x1 in span_starts:
-                for x2 in span_starts:
-                    for label in MAP_LABELS.values():
-                        if label not in rels[(x1, x2)]:
-                            neg += 1
-                            rels[(x1, x2)][label] = 0.0
+                # The annotation is complete, so fill in zero's where the data is missing
+                for x1 in span_starts:
+                    for x2 in span_starts:
+                        if "causality" not in rels[(x1, x2)]:
+                            rels[(x1, x2)]["causality"] = 0.0
 
-                            # print(rels[(x1, x2)])
-            doc._.rel = rels
-            # print(doc._.rel)
+                doc._.rel = rels
+                if len(doc._.rel.items()) > 0:
+                    print(doc._.rel)
 
-            # only keeping documents with at least 1 positive case
-            if pos > 0:
-                docs["total"].append(doc)
-                count_pos["total"] += pos
-                count_all["total"] += pos + neg
+                docs["train"].append(doc)
+                count_all["train"] += 1
 
     # print(len(docs["total"]))
-    docbin = DocBin(docs=docs["total"], store_user_data=True)
+    docbin = DocBin(docs=docs["train"], store_user_data=True)
     docbin.to_disk(train_file)
     msg.info(
-        f"{len(docs['total'])} training sentences"
+        f"{len(docs['train'])} training sentences, {count_pos['train']}/{count_all['train']} positive"
     )
 
 
