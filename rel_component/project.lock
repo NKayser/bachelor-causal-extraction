@@ -49,7 +49,7 @@ evaluate:
 evaluate_my_data:
   cmd: python -m spacy run evaluate_my_data
   script:
-    - python ./scripts/evaluate.py training/model-best data/my_train.spacy False
+    - python ./scripts/evaluate.py training/model-best data/my_train.spacy True
   deps:
     - path: training/model-best
       md5: 276bb5fc8189f5eb038633dbbfafee59
