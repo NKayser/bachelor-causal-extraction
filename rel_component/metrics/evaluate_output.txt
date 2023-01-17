@@ -1,18 +1,55 @@
-================================== evaluate ==================================
-threshold 0.99   {'rel_micro_p': '34.90', 'rel_micro_r': '1.07', 'rel_micro_f': '2.08'}
-threshold 1.00   {'rel_micro_p': '53.33', 'rel_micro_r': '0.17', 'rel_micro_f': '0.33'}
+================================= train_gpu =================================
+Running command: 'C:\Users\Nico\Documents\Causal\venv\Scripts\python.exe' -m spacy train configs/rel_trf.cfg --output training --paths.train data/my_train.spacy --paths.dev data/my_dev.spacy -c ./scripts/custom_functions.py --gpu-id 0
+ℹ Saving to output directory: training
+ℹ Using GPU: 0
 
+=========================== Initializing pipeline ===========================
+[2023-01-17 12:02:29,651] [INFO] Set up nlp object from config
+[2023-01-17 12:02:29,657] [INFO] Pipeline: ['transformer', 'relation_extractor']
+[2023-01-17 12:02:29,661] [INFO] Created vocabulary
+[2023-01-17 12:02:29,662] [INFO] Finished initializing nlp object
+Some weights of the model checkpoint at roberta-base were not used when initializing RobertaModel: ['lm_head.bias', 'lm_head.dense.bias', 'lm_head.dense.weight', 'lm_head.decoder.weight', 'lm_head.layer_norm.bias', 'lm_head.layer_norm.weight']
+- This IS expected if you are initializing RobertaModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing RobertaModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+[2023-01-17 12:02:53,571] [INFO] Initialized pipeline components: ['transformer', 'relation_extractor']
+✔ Initialized pipeline
+
+============================= Training pipeline =============================
+ℹ Pipeline: ['transformer', 'relation_extractor']
+ℹ Initial learn rate: 0.0
+E    #       LOSS TRANS...  LOSS RELAT...  REL_MICRO_P  REL_MICRO_R  REL_MICRO_F  SCORE
+---  ------  -------------  -------------  -----------  -----------  -----------  ------
+ℹ Could not determine any instances in doc.
+  0       0           0.00           0.00        41.88         4.03         7.36    0.07
+ℹ Could not determine any instances in doc.
+  0     100           3.97          18.42        89.36        13.83        23.95    0.24
+  0     200           0.95           8.79        48.95        73.17        58.66    0.59
+ℹ Could not determine any instances in doc.
+  0     300           0.84           7.80        91.36         6.09        11.42    0.11
+  0     400           0.63           6.39        85.44        26.09        39.97    0.40
+ℹ Could not determine any instances in doc.
+  0     500           0.42           5.38        90.79        11.36        20.19    0.20
+ℹ Could not determine any instances in doc.
+  0     600           0.54           4.63        95.24        14.81        25.64    0.26
+  0     700           0.36           4.21        47.34        76.87        58.59    0.59
+ℹ Could not determine any instances in doc.
+  0     800           0.52           5.11        91.84        21.32        34.60    0.35
+  0     900           0.38           4.86        93.02        16.46        27.97    0.28
+ℹ Could not determine any instances in doc.
+ℹ Could not determine any instances in doc.
+  0    1000           0.36           4.29        44.38        90.95        59.65    0.60
+✔ Saved pipeline to output directory
 Results of the trained model:
 threshold 0.00   {'rel_micro_p': '37.61', 'rel_micro_r': '100.00', 'rel_micro_f': '54.67'}
-threshold 0.05   {'rel_micro_p': '37.61', 'rel_micro_r': '100.00', 'rel_micro_f': '54.67'}
-threshold 0.10   {'rel_micro_p': '37.61', 'rel_micro_r': '100.00', 'rel_micro_f': '54.67'}
-threshold 0.20   {'rel_micro_p': '37.61', 'rel_micro_r': '100.00', 'rel_micro_f': '54.67'}
-threshold 0.30   {'rel_micro_p': '37.61', 'rel_micro_r': '100.00', 'rel_micro_f': '54.67'}
-threshold 0.40   {'rel_micro_p': '37.62', 'rel_micro_r': '100.00', 'rel_micro_f': '54.67'}
-threshold 0.50   {'rel_micro_p': '37.74', 'rel_micro_r': '99.90', 'rel_micro_f': '54.78'}
-threshold 0.60   {'rel_micro_p': '39.66', 'rel_micro_r': '96.47', 'rel_micro_f': '56.21'}
-threshold 0.70   {'rel_micro_p': '40.80', 'rel_micro_r': '33.40', 'rel_micro_f': '36.73'}
-threshold 0.80   {'rel_micro_p': '30.21', 'rel_micro_r': '0.60', 'rel_micro_f': '1.17'}
-threshold 0.90   {'rel_micro_p': '0.00', 'rel_micro_r': '0.00', 'rel_micro_f': '0.00'}
-threshold 0.99   {'rel_micro_p': '0.00', 'rel_micro_r': '0.00', 'rel_micro_f': '0.00'}
-threshold 1.00   {'rel_micro_p': '0.00', 'rel_micro_r': '0.00', 'rel_micro_f': '0.00'}
+threshold 0.05   {'rel_micro_p': '39.66', 'rel_micro_r': '99.69', 'rel_micro_f': '56.75'}
+threshold 0.10   {'rel_micro_p': '40.12', 'rel_micro_r': '99.15', 'rel_micro_f': '57.13'}
+threshold 0.20   {'rel_micro_p': '41.46', 'rel_micro_r': '98.60', 'rel_micro_f': '58.37'}
+threshold 0.30   {'rel_micro_p': '43.40', 'rel_micro_r': '98.14', 'rel_micro_f': '60.18'}
+threshold 0.40   {'rel_micro_p': '45.60', 'rel_micro_r': '97.65', 'rel_micro_f': '62.17'}
+threshold 0.50   {'rel_micro_p': '48.27', 'rel_micro_r': '97.05', 'rel_micro_f': '64.48'}
+threshold 0.60   {'rel_micro_p': '51.42', 'rel_micro_r': '96.22', 'rel_micro_f': '67.02'}
+threshold 0.70   {'rel_micro_p': '55.48', 'rel_micro_r': '95.23', 'rel_micro_f': '70.11'}
+threshold 0.80   {'rel_micro_p': '61.14', 'rel_micro_r': '92.94', 'rel_micro_f': '73.76'}
+threshold 0.90   {'rel_micro_p': '71.09', 'rel_micro_r': '87.83', 'rel_micro_f': '78.58'}
+threshold 0.99   {'rel_micro_p': '92.35', 'rel_micro_r': '42.37', 'rel_micro_f': '58.09'}
+threshold 1.00   {'rel_micro_p': '93.37', 'rel_micro_r': '15.12', 'rel_micro_f': '26.03'}
