@@ -16,9 +16,9 @@ nlp = spacy.blank("en")
 
 
 crest_xls = 'assets/crest_v2.xlsx'
-train_file = 'data/my_train.spacy'
-dev_file = 'data/my_dev.spacy'
-test_file = 'data/my_test.spacy'
+train_file = 'data/crest_train.spacy'
+dev_file = 'data/crest_dev.spacy'
+test_file = 'data/crest_test.spacy'
 
 
 def span_info_to_list(str):

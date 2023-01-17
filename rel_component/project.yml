@@ -6,9 +6,9 @@ vars:
   annotations: "assets/crest_v2.xlsx"
   tok2vec_config: "configs/rel_tok2vec.cfg"
   trf_config: "configs/rel_trf.cfg"
-  train_file: "data/my_train.spacy"
-  dev_file: "data/my_dev.spacy"
-  test_file: "data/my_test.spacy"
+  train_file: "data/crest_train.spacy"
+  dev_file: "data/crest_dev.spacy"
+  test_file: "data/crest_test.spacy"
   trained_model: "training/model-best"
   parse_script: "scripts/parse_crest_data.py"
 
