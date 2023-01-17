@@ -22,14 +22,14 @@ train_gpu:
       --paths.dev data/my_dev.spacy -c ./scripts/custom_functions.py --gpu-id 0
   deps:
     - path: configs/rel_trf.cfg
-      md5: 71c6bb8a070d01840bdb59dcdcd63bea
+      md5: f9c3c92df968c2cd5aa223cb1277a44e
     - path: data/my_train.spacy
       md5: 84c4a30cba2aa44de9f70af0ce309d21
     - path: data/my_dev.spacy
       md5: 48462b4701a4e0fda95a07549d71c969
   outs:
     - path: training/model-best
-      md5: 621c491d2f9bc79db2e48e05ff4ac66c
+      md5: 3f15c27ff485b6f2830999e6c12fb794
   spacy_version: 3.3.2
   spacy_git_version: 4e032da3b
 evaluate:
@@ -38,7 +38,7 @@ evaluate:
     - python ./scripts/evaluate.py training/model-best data/my_test.spacy False
   deps:
     - path: training/model-best
-      md5: 621c491d2f9bc79db2e48e05ff4ac66c
+      md5: 3f15c27ff485b6f2830999e6c12fb794
     - path: data/my_test.spacy
       md5: b0fab5ce0b8afe075f473a275d8e29c6
   outs: []
