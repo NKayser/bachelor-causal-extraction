@@ -48,7 +48,7 @@ def main(excel_loc: str, train_file: str, dev_file: str, test_file: str):
         span2_info = span_info_to_list(span2_info)
         # skip docs with multiple cause/effect spans and missing spans
         if len(span1_info) != 1 or len(span2_info) != 1 or span1_info[0][0] == -1 or span2_info[0][0] == -1:
-            ids["skipped"].add(index)
+            ids["skipped"].add(global_id)
             continue
         span1_info = span1_info[0]
         span2_info = span2_info[0]
@@ -56,6 +56,7 @@ def main(excel_loc: str, train_file: str, dev_file: str, test_file: str):
         direction = row["direction"]
         label = row["label"]
         split = row["split"]
+        global_id = row["global_id"]
 
         span_starts = set()
         neg = 0
@@ -76,7 +77,7 @@ def main(excel_loc: str, train_file: str, dev_file: str, test_file: str):
             span_starts.add(entity[0].i)
 
         if entities[0].end_char >= entities[1].start_char:
-            ids["skipped"].add(index)
+            ids["skipped"].add(global_id)
             continue
         doc.ents = entities
 
@@ -97,21 +98,21 @@ def main(excel_loc: str, train_file: str, dev_file: str, test_file: str):
         else:
             neg += 1
 
-        if split == 0:
-            count_pos["train"] += pos
-            count_all["train"] += pos + neg
-            docs["train"].append(doc)
-            ids["train"].add(index)
-        elif split == 1:
+        if split == 1:
             count_pos["dev"] += pos
             count_all["dev"] += pos + neg
             docs["dev"].append(doc)
-            ids["dev"].add(index)
+            ids["dev"].add(global_id)
         elif split == 2:
             count_pos["test"] += pos
             count_all["test"] += pos + neg
             docs["test"].append(doc)
-            ids["test"].add(index)
+            ids["test"].add(global_id)
+        else: # split == 0 or null
+            count_pos["train"] += pos
+            count_all["train"] += pos + neg
+            docs["train"].append(doc)
+            ids["train"].add(global_id)
 
 
     docbin = DocBin(docs=docs["train"], store_user_data=True)
