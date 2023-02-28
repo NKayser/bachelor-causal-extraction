@@ -9,5 +9,6 @@ pip3 install torch torchvision torchaudio --extra-index-url https://download.pyt
 python -m spacy download en_core_web_trf
 python -m pip install -U spacy transformers
 python -m spacy project run all_gpu
+python -m spacy project run evaluate_my_data_all
 ```
 (not sure about order of commands)

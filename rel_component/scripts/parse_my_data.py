@@ -20,7 +20,7 @@ nlp.add_pipe("sentencizer")
 msg = Printer()
 
 ann = "assets/labels_and_predictions.jsonl"
-train_file = 'data/my_train.spacy'
+train_file = 'data/my_train_all_incl_neg.spacy'
 dev_file = 'data/my_dev.spacy'
 test_file = 'data/my_test.spacy'
 rel_label = "causes"
@@ -162,9 +162,9 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
                         # print(pos)
                         # print(rels[(start, end)])
 
-                if not contains_positive:
+                #if not contains_positive:
                     # only add positive
-                    continue
+                #    continue
 
                 # The annotation is complete, so fill in zero's where the data is missing
                 for x1 in span_starts:

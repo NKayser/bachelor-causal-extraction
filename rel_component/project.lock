@@ -58,3 +58,16 @@ evaluate_my_data:
   outs: []
   spacy_version: 3.3.2
   spacy_git_version: 4e032da3b
+evaluate_my_data_all:
+  cmd: python -m spacy run evaluate_my_data_all
+  script:
+    - python ./scripts/evaluate.py training/model-best data/my_train_all_incl_neg.spacy
+      True
+  deps:
+    - path: training/model-best
+      md5: 276bb5fc8189f5eb038633dbbfafee59
+    - path: data/my_train_all_incl_neg.spacy
+      md5: c53907daaff41ac891167696a34d2363
+  outs: []
+  spacy_version: 3.3.2
+  spacy_git_version: 4e032da3b
